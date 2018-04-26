@@ -478,6 +478,8 @@ class ConfigureSwitch(Command.Command):
 # y cuando estemos dentro de la configuracion del switch. Una vez creada la Vlan
 # accederemos a la configuracion de la misma para ponerle el nombre que queramos
 class Vlan(Command.Command):
+	def args(self):
+		return ["vlan"]
 	def testing_vlan(self,id):
 		patron = re.compile('^\d+$')
 		if(patron.match(str(id))):
@@ -588,7 +590,9 @@ class Show(Command.Command):
 
 
 class Exit(Command.Command):
-    def run(self,line):
+	def args(self):
+		return ["exit"]
+	def run(self,line):
 		common.append_array_history(line)
 		if (common.get_console().prompt == common.get_user_name()):
 			sys.exit(1)
@@ -785,10 +789,10 @@ def main():
 	print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Adding interface " + str(contador) + " to bridge br0")
 	hostname = Hostname("hostname",help="Usage: hostname [name]",dynamic_args=True)
 	configureswitch = ConfigureSwitch("configure",help="Usage: configure to access to the switch configuration")
-	vlan = Vlan("vlan",help="Usage: vlan [vlan id]")
+	vlan = Vlan("vlan",help="Usage: vlan [vlan id]",dynamic_args=True)
 	vlan_name = VlanName("name",help="Usage: name [vlan_name]")
 	show = Show("show",help="Usage: show [interfaces | vlan ]",dynamic_args=True)
-	exit = Exit("exit",help="Usage: exit")
+	exit = Exit("exit",help="Usage: exit",dynamic_args=True)
 	history = History("history",help="Usage: history")
 	configure_interface = ConfigureInterface("interface",help="Usage: interface [interface]",dynamic_args=True)
 	switchport = Switchport("switchport",help="switchport [mode|access|trunk]:\n \tmode: switchport mode [access|trunk]\n \taccess: switchport access vlan [access vlan]\n \ttrunk: switchport trunk allowed vlan [allowed vlan's]",dynamic_args=True)
@@ -796,9 +800,9 @@ def main():
 	saveload = Save_Load("copy",help="Usage: Load Config: copy startup-config running-config || Save: copy running-config startup-config",dynamic_args=True)
 	no = No("no",help="Usage: no [vlan] [vlan_id]",dynamic_args=True)
 	ping = Ping("ping",help="Usage: ping [ip address]")
-	shutdown = Shutdown("shutdown",help="Usage: shutdown")
+	shutdown = Shutdown("shutdown",help="Usage: shutdown",dynamic_args=True)
 	see = See("see",help="Show in OpenVSwitch")
-	reload_ = Reload("reload",help="Reset bridge")
+	reload_ = Reload("reload",help="Reset bridge",dynamic_args=True)
 	actualcommand = ActualCommand("?",help="Actual command depends of prompt")
 	common.get_console().addChild(configureswitch)
 	common.get_console().addChild(hostname)

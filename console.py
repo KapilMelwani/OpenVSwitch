@@ -5,6 +5,16 @@ import readline
 import traceback
 from ishell import logger
 
+class Colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 
 class Console(object):
     def __init__(self, prompt="Prompt", prompt_delim=">"):
@@ -49,6 +59,7 @@ class Console(object):
 
         if run:
             #print "Unknown Command: %s" % buf
+            print Colors.FAIL + "[ERROR] " + Colors.ENDC + "%s: command not found" % buf
             return
             #self.print_childs_help()
         # Needing completion
@@ -102,9 +113,6 @@ class Console(object):
                 break
 
             except Exception:
-
-
-                
                 print traceback.format_exc()
                 sys.exit(1)
 
