@@ -79,6 +79,7 @@ class ConnectingVlan:
 
 connecting_vlan = ConnectingVlan()
 
+
 class CargandoFichero:
     def __init__(self):
         self.cargando_fichero = False
@@ -124,6 +125,8 @@ class Colors:
 
 # Falta comprobar con expresiones regulares la mascara y la ip
 class IPAdminInterface(Command.Command):
+	def args(self):
+		return ["ip address"]
 	def testing_ip(self,ip):
 		ip_without_point = ip.replace("."," ")
 		ip_for_test = ip_without_point.split()
@@ -160,12 +163,17 @@ class IPAdminInterface(Command.Command):
 							mask = args[3]
 							str_mask = str(mask).strip('[]').strip('\'"')
 							if(str_mask.find('.') > 0):
+								short_mask = 0
 								for i in range(common.get_len_array_long_mask()):
 									if(str_mask == common.get_item_array_long_mask(i)):
 										for j in range(0,common.get_len_array_long_mask()):
 											if(str_mask == common.get_item_array_long_mask(i)):
 												short_mask = str(i)
 										print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "ip address: " + str_ip_address + " mask: " + str_mask + " added")
+										vlan_str = "vlan" + connecting_vlan.get_connect_vlan_interface()
+										vswitch.ovs_vsctl_admin_port("br0",vlan_str,connecting_vlan.get_connect_vlan_interface())
+										vswitch.ovs_vsctl_set_admin("br0",vlan_str)
+										vswitch.ifconfig(str_ip_address + '/' + short_mask,vlan_str)
 										for k in range(0,common.get_len_vlan_id()):
 											if(common.get_item_vlan_id(k) == connecting_vlan.get_connect_vlan_id_interface_vlan()):
 												common.set_array_ip_vlan(k,str_ip_address + "/" + short_mask)
@@ -181,6 +189,10 @@ class IPAdminInterface(Command.Command):
 							print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Wrong short mask")
 							return
 						long_mask = common.get_array_long_mask(int(mask))
+						vlan_str = "vlan" + connecting_vlan.get_connect_vlan_interface()
+						vswitch.ovs_vsctl_admin_port("br0",vlan_str,connecting_vlan.get_connect_vlan_interface())
+						vswitch.ovs_vsctl_set_admin("br0",vlan_str)
+						vswitch.ifconfig(str_ip_address,vlan_str)
 						print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "ip address: " + str_ip_address + " mask: " + long_mask + " added")
 						for k in range(0,common.get_len_vlan_id()):
 							if(common.get_item_vlan_id(k) == connecting_vlan.get_connect_vlan_id_interface_vlan()):
@@ -256,7 +268,9 @@ class ConfigureInterface(Command.Command):
 						for i in range(0,common.get_len_vlan_id()):
 							if(str_vlan_id_interface == common.get_item_vlan_id(i)):
 								testing_vlan_id_interface = True
+								connecting_vlan.set_connect_vlan_interface(str_vlan_id_interface)
 								print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Configuring vlan " + str_vlan_id_interface)
+								common.append_array_history(line)
 								common.get_console().prompt = "(config-if)"
 								if(cargando.get_cargando() == False):
 									common.get_console().loop()
@@ -311,7 +325,7 @@ class ConfigureInterface(Command.Command):
 class Switchport(Command.Command):
 
 	def args(self):
-		return ["mode access","mode trunk","trunk allowed vlan","access vlan","access","trunk"]
+		return ["mode access","mode trunk","trunk allowed vlan","access vlan","access","trunk","allowed vlan"]
 	def run(self,line):
 
 		if(common.get_console().prompt == "(config-if)"):
@@ -706,7 +720,9 @@ class Ping(Command.Command):
 
 
 class Shutdown(Command.Command):
-    def run(self, line):
+	def args(self):
+		return ["shutdown"]
+	def run(self, line):
 		if(common.get_console().prompt == "(config-if)"):
 			try:
 				subprocess.call(['ifconfig','%s' % connecting_interfaces.get_connect(),'down'])
@@ -716,7 +732,7 @@ class Shutdown(Command.Command):
 
 class See(Command.Command):
     def run(self,line):
-        print (vswitch.ovs_vsctl_show())
+		vswitch.ovs_vsctl_show()
 
 class ActualCommand(Command.Command):
 	def run(self,line):
@@ -776,7 +792,7 @@ def main():
 	history = History("history",help="Usage: history")
 	configure_interface = ConfigureInterface("interface",help="Usage: interface [interface]",dynamic_args=True)
 	switchport = Switchport("switchport",help="switchport [mode|access|trunk]:\n \tmode: switchport mode [access|trunk]\n \taccess: switchport access vlan [access vlan]\n \ttrunk: switchport trunk allowed vlan [allowed vlan's]",dynamic_args=True)
-	ipadmininterface = IPAdminInterface("ip",help="Usage: ip address [ip] [short|long mask]")
+	ipadmininterface = IPAdminInterface("ip",help="Usage: ip address [ip] [short|long mask]",dynamic_args=True)
 	saveload = Save_Load("copy",help="Usage: Load Config: copy startup-config running-config || Save: copy running-config startup-config",dynamic_args=True)
 	no = No("no",help="Usage: no [vlan] [vlan_id]",dynamic_args=True)
 	ping = Ping("ping",help="Usage: ping [ip address]")

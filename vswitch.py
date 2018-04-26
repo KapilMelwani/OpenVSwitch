@@ -121,3 +121,6 @@ def ovs_get_physical_interface(bridge):
                 if ('""' in out) or ('system' in out):
                     return iface  # this should be the physical interface
     return None
+def ovs_vsctl_show():
+    ret, _out, _err = util.start_process(["ovs-vsctl", "show"])
+    print _out
