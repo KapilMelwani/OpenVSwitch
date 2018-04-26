@@ -11,10 +11,9 @@ class Common:
 		"255.255.128.0","255.255.192.0","255.255.224.0","255.255.240.0","255.255.248.0","255.255.252.0","255.255.254.0","255.255.255.0",
 		"255.255.255.128","255.255.255.254","255.255.255.252","255.255.255.240","255.255.255.248","255.255.255.252","255.255.255.254","255.255.255.255"]
 		# Instancia de common.get_console(), primeramente le ponemos este nombre "S1@LisaSwitch:~#"
-		self.console = Console.Console("S1@LisaSwitch:~", '#')
+		self.console = Console.Console("S1~", '#')
 		# Nombre del usuario, inicializamos a este nombre
-		self.user_name = "S1@LisaSwitch:~"
-		self.user_surname = "@LisaSwitch:~"
+		self.user_name = "S1~"
 		# Array que contiene un historial de los comandos escritos
 		self.array_history = []
 		# Array que contiene el id de las vlan creadas en el sistemas
@@ -22,8 +21,8 @@ class Common:
 		# Array que contiene el nombre de las vlan creadas en el sistema
 		self.array_vlan_name = []
 		# Array que contiene el listado de interfaces excepto la loopback
-		#self.array_interfaces_all = netifaces.interfaces()
-       		self.array_interfaces = ["eth0","eth1","eth2","eth3"]
+		self.array_interfaces_all = netifaces.interfaces()
+       		self.array_interfaces = []
         	self.array_interfaces_vlan = []
        		self.array_ip_vlan = []
        		self.multi = False
@@ -33,7 +32,7 @@ class Common:
         	self.control_counter_mode_access = 0
         	self.control_counter_mode_trunk = 0
         	self.array_multi_interface = []
-        	#self.update_interfaces()
+        	self.update_interfaces()
 
 
 	def get_multi(self):
@@ -95,8 +94,6 @@ class Common:
 		return self.array_long_mask[index]
 	def get_user_name(self):
 		return self.user_name
-	def get_surname(self):
-		return self.user_surname
 	def get_array_history(self):
 		return self.array_history
 	def get_array_vlan_id(self):

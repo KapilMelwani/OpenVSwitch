@@ -416,6 +416,8 @@ class Reload(Command.Command):
 			common.reset()
 			vswitch.ovs_vsctl_del_bridge("br0")
 			vswitch.ovs_vsctl_add_bridge("br0")
+			for i in range(0,common.get_len_interfaces()):
+				vswitch.ovs_vsctl_add_port_to_bridge("br0",common.get_item_interfaces(i))
 		else:
 			print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Bad Command use")
 
@@ -429,8 +431,8 @@ class Hostname(Command.Command):
 			Command.Command = ['hostname']
 			if len(line) > 1:
 				name = args[1:]
-				common.get_console().prompt = str(name).strip('[]').strip('\'"')  + common.get_surname()
-				common.set_user_name(str(name).strip('[]').strip('\'"')  + common.get_surname())
+				common.get_console().prompt = str(name).strip('[]').strip('\'"')
+				common.set_user_name(str(name).strip('[]').strip('\'"'))
 				print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "New session has been opened with name " + str(name).strip('[]').strip('\'"'))
 				common.get_console().loop()
 				if(cargando.get_cargando() == False):
@@ -756,8 +758,9 @@ class ActualCommand(Command.Command):
 						print("\t\texit")
 
 def main():
-	vswitch.ovs_vsctl_add_bridge("br0")
-	print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Bridge Created with name br0")
+	if(vswitch.ovs_vsctl_is_ovs_bridge("br0") == False):
+		vswitch.ovs_vsctl_add_bridge("br0")
+		print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Bridge Created with name br0")
 	contador = 0
 	for i in range(0,common.get_len_interfaces()):
 		vswitch.ovs_vsctl_add_port_to_bridge("br0",common.get_item_interfaces(i))
