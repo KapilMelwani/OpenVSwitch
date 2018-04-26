@@ -22,8 +22,8 @@ class Common:
 		# Array que contiene el nombre de las vlan creadas en el sistema
 		self.array_vlan_name = []
 		# Array que contiene el listado de interfaces excepto la loopback
-		self.array_interfaces_all = netifaces.interfaces()
-       		self.array_interfaces = []
+		#self.array_interfaces_all = netifaces.interfaces()
+       		self.array_interfaces = ["eth0","eth1","eth2","eth3"]
         	self.array_interfaces_vlan = []
        		self.array_ip_vlan = []
        		self.multi = False
@@ -33,7 +33,7 @@ class Common:
         	self.control_counter_mode_access = 0
         	self.control_counter_mode_trunk = 0
         	self.array_multi_interface = []
-        	self.update_interfaces()
+        	#self.update_interfaces()
 
 
 	def get_multi(self):
@@ -147,6 +147,14 @@ class Common:
 		return self.array_long_mask[index]
 	def get_len_vlan_name(self):
 		return len(self.array_vlan_name)
+	def remove_array_multi(self):
+		self.array_multi_interface = []
+	def reset(self):
+		self.array_vlan_id = []
+		self.array_history = []
+		self.array_vlan_name = []
+		self.array_interfaces_vlan = []
+		self.array_ip_vlan = []
    	def update_interfaces(self):
         	for i in range(0,len(self.array_interfaces_all)):
             		patron = re.compile('^eth\d+$')

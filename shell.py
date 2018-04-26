@@ -105,6 +105,7 @@ class RunMulti:
 				return
 		print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Applied all interface configuration")
 		cargando.set_cargando()
+		common.remove_array_multi()
 
 
 run = RunMulti()
@@ -328,7 +329,7 @@ class Switchport(Command.Command):
 							common.append_array_multi(line)
 						else:
 							common.append_array_history(line)
-						comomn.set_control_counter_mode_trunk(1)
+						common.set_control_counter_mode_trunk(1)
 					else:
 						if(str_mode == "access"):
 							important_mode = "access"
@@ -408,6 +409,15 @@ class Switchport(Command.Command):
 			print (Colors.FAIL + "[ERROR] " + Colors.ENDC + "Bad Command use")
 
 
+class Reload(Command.Command):
+	def run(self,line):
+		if(common.get_console().prompt == common.get_user_name()):
+			print("Reloading Bridge")
+			common.reset()
+			vswitch.ovs_vsctl_del_bridge("br0")
+			vswitch.ovs_vsctl_add_bridge("br0")
+		else:
+			print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Bad Command use")
 
 # Clase Switchname nos sirve para cambiar el nombre de usuario del switch al que nosotros
 # queramos
@@ -710,6 +720,7 @@ class ActualCommand(Command.Command):
 	def run(self,line):
 		if(common.get_console().prompt == common.get_user_name()):
 			print("\t\tconfigure")
+			print("\t\treload")
 			print("\t\thostname [new switch name]")
 			print("\t\thistory")
 			print("\t\tcopy startup-config running-config")
@@ -745,47 +756,48 @@ class ActualCommand(Command.Command):
 						print("\t\texit")
 
 def main():
-
-    vswitch.ovs_vsctl_add_bridge("br0")
-    print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Bridge Created with name br0")
-    contador = 0
-    for i in range(0,common.get_len_interfaces()):
-        vswitch.ovs_vsctl_add_port_to_bridge("br0",common.get_item_interfaces(i))
-        contador = contador + 1
-    print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Adding interface " + str(contador) + " to bridge br0")
-    hostname = Hostname("hostname",help="Usage: hostname [name]",dynamic_args=True)
-    configureswitch = ConfigureSwitch("configure",help="Usage: configure to access to the switch configuration")
-    vlan = Vlan("vlan",help="Usage: vlan [vlan id]")
-    vlan_name = VlanName("name",help="Usage: name [vlan_name]")
-    show = Show("show",help="Usage: show [interfaces | vlan ]",dynamic_args=True)
-    exit = Exit("exit",help="Usage: exit")
-    history = History("history",help="Usage: history")
-    configure_interface = ConfigureInterface("interface",help="Usage: interface [interface]",dynamic_args=True)
-    switchport = Switchport("switchport",help="switchport [mode|access|trunk]:\n \tmode: switchport mode [access|trunk]\n \taccess: switchport access vlan [access vlan]\n \ttrunk: switchport trunk allowed vlan [allowed vlan's]",dynamic_args=True)
-    ipadmininterface = IPAdminInterface("ip",help="Usage: ip address [ip] [short|long mask]")
-    saveload = Save_Load("copy",help="Usage: Load Config: copy startup-config running-config || Save: copy running-config startup-config",dynamic_args=True)
-    no = No("no",help="Usage: no [vlan] [vlan_id]",dynamic_args=True)
-    ping = Ping("ping",help="Usage: ping [ip address]")
-    shutdown = Shutdown("shutdown",help="Usage: shutdown")
-    see = See("see",help="Show in OpenVSwitch")
-    actualcommand = ActualCommand("?",help="Actual command depends of prompt")
-    common.get_console().addChild(configureswitch)
-    common.get_console().addChild(hostname)
-    common.get_console().addChild(vlan)
-    common.get_console().addChild(vlan_name)
-    common.get_console().addChild(exit)
-    common.get_console().addChild(switchport)
-    common.get_console().addChild(show)
-    common.get_console().addChild(history)
-    common.get_console().addChild(configure_interface)
-    common.get_console().addChild(ipadmininterface)
-    common.get_console().addChild(no)
-    common.get_console().addChild(saveload)
-    common.get_console().addChild(ping)
-    common.get_console().addChild(see)
-    common.get_console().addChild(actualcommand)
-    common.get_console().addChild(shutdown)
-    common.get_console().loop()
-    print (Colors.OKBLUE + "Bye" + Colors.ENDC)
+	vswitch.ovs_vsctl_add_bridge("br0")
+	print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Bridge Created with name br0")
+	contador = 0
+	for i in range(0,common.get_len_interfaces()):
+		vswitch.ovs_vsctl_add_port_to_bridge("br0",common.get_item_interfaces(i))
+		contador = contador + 1
+	print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Adding interface " + str(contador) + " to bridge br0")
+	hostname = Hostname("hostname",help="Usage: hostname [name]",dynamic_args=True)
+	configureswitch = ConfigureSwitch("configure",help="Usage: configure to access to the switch configuration")
+	vlan = Vlan("vlan",help="Usage: vlan [vlan id]")
+	vlan_name = VlanName("name",help="Usage: name [vlan_name]")
+	show = Show("show",help="Usage: show [interfaces | vlan ]",dynamic_args=True)
+	exit = Exit("exit",help="Usage: exit")
+	history = History("history",help="Usage: history")
+	configure_interface = ConfigureInterface("interface",help="Usage: interface [interface]",dynamic_args=True)
+	switchport = Switchport("switchport",help="switchport [mode|access|trunk]:\n \tmode: switchport mode [access|trunk]\n \taccess: switchport access vlan [access vlan]\n \ttrunk: switchport trunk allowed vlan [allowed vlan's]",dynamic_args=True)
+	ipadmininterface = IPAdminInterface("ip",help="Usage: ip address [ip] [short|long mask]")
+	saveload = Save_Load("copy",help="Usage: Load Config: copy startup-config running-config || Save: copy running-config startup-config",dynamic_args=True)
+	no = No("no",help="Usage: no [vlan] [vlan_id]",dynamic_args=True)
+	ping = Ping("ping",help="Usage: ping [ip address]")
+	shutdown = Shutdown("shutdown",help="Usage: shutdown")
+	see = See("see",help="Show in OpenVSwitch")
+	reload_ = Reload("reload",help="Reset bridge")
+	actualcommand = ActualCommand("?",help="Actual command depends of prompt")
+	common.get_console().addChild(configureswitch)
+	common.get_console().addChild(hostname)
+	common.get_console().addChild(vlan)
+	common.get_console().addChild(vlan_name)
+	common.get_console().addChild(exit)
+	common.get_console().addChild(switchport)
+	common.get_console().addChild(show)
+	common.get_console().addChild(history)
+	common.get_console().addChild(configure_interface)
+	common.get_console().addChild(ipadmininterface)
+	common.get_console().addChild(no)
+	common.get_console().addChild(saveload)
+	common.get_console().addChild(ping)
+	common.get_console().addChild(see)
+	common.get_console().addChild(actualcommand)
+	common.get_console().addChild(shutdown)
+	common.get_console().addChild(reload_)
+	common.get_console().loop()
+	print (Colors.OKBLUE + "Bye" + Colors.ENDC)
 if __name__ == '__main__':
-    main()
+	main()
