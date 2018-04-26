@@ -1,0 +1,12 @@
+# ESTO ES UNA COPIA DEL FICHERO /ETC/EXPORTS
+# PARA INSTALAR NFS: 
+# EN LOCAL:
+# - root@kali:~/Desktop/tfgit# apt-get install nfs-kernel-server nfs-common
+# - Editamos el fichero /etc/exports
+# - root@kali:~/Desktop/tfgit# /etc/init.d/nfs-kernel-server restart
+# (Es necesario utilizar NFS puesto que en el copy running-config startup-config
+# creamos un fichero de configuracion para que el usuario pueda cargar alguna 
+# configuracion previamente creada, como utilizamos Docker, hacemos uso
+# de esta herramienta para crear el fichero en local)
+
+/home/shared 	172.17.0.1(rw,sync)

@@ -1,0 +1,160 @@
+IP ADDRESS COMMAND:
+
+Se tratan excepciones tales como:
+
+- ip
+- ip address
+- ip [otra palabra]
+- ip address [ip incorrecta] --> 192.168.0. ó 192.168.999.0 [...etc]
+- ip address [ip]
+- ip address ip/XXX --> mascara de tamaño 1 o 2
+- ip address [ip] [long mask incorrecta] --> 255.255.999.0
+
+Correcto:
+
+- ip address 192.168.0.1/24
+- ip address 192.168.0.1 255.255.255.0
+
+
+VLAN COMMAND:
+
+Se tratan excepciones:
+
+- vlan [palabra] --> vlan xd
+- vlan
+- vlan [numero negativo] --> vlan -1
+- vlan [numero decimal] --> vlan 2.5
+- vlan [algo raro] --> vlan 2.c
+
+Correcto:
+
+- vlan 10
+
+*NOTA: Se ha corregido el problema de crear la vlan sin poner el nombre,
+ahora, si no se pone, automaticamente se le asigna el nombre
+"default-X" a dicha VLAN*
+
+Ejemplo:
+
+(config)# vlan 10
+[OK] Vlan 10 has been created
+(config-vlan)# name kapil
+[OK] Vlan name kapil assigned
+(config-vlan)# exit
+(config)# vlan 20
+[OK] Vlan 20 has been created
+(config-vlan)# exit
+(config)# vlan 30
+[OK] Vlan 30 has been created
+(config-vlan)# exit
+(config)# vlan 40
+[OK] Vlan 40 has been created
+(config-vlan)# exit
+(config)# vlan 50
+[OK] Vlan 50 has been created
+(config-vlan)# exit
+(config)# vlan 60
+[OK] Vlan 60 has been created
+(config-vlan)# name kevin
+[OK] Vlan name kevin assigned
+(config-vlan)# exit
+(config)# show vlan
+
+	VLAN NAME	     VLAN ID
+
+	kapil:			10
+
+	default-2:		20
+
+	default-3:		30
+
+	default-4:		40
+
+	default-5:		50
+
+	kevin:			60
+
+(config)#
+
+
+HOSTNAME: SOLO EN PROMPT INICIAL
+SHOW VLAN: SOLO EN PROMPT INICIAL
+SHOW INTERFACES: SOLO EN PROMPT INICIAL
+NO VLAN: SOLO EN (CONFIG)
+PING: SOLO EN PROMPT inicial
+history: SOLO EN PROMPT inicial
+copy startup-config running-config: SOLO EN PROMPT inicial
+copy running-config startup-config: SOLO EN PROMPT inicial
+
+
+NO COMMAND:
+
+Se le ha anadido tabulacion de "no vlan" cuando el prompt es config
+y "no shutdown" cuando el prompt es config-if
+
+COPY COMMAND:
+
+Se ha anadido tabulacion de "startup-config running-config" "running-config startup-config"
+
+CONFIGURE SWITCH COMMAND:
+
+Se ha anadido control de errores para que solo se pueda ejecutar cuando el Prompt
+es el principal
+
+COMANDO INTERFACE VLAN:
+
+Se anade excepcion:
+
+- interface
+- interface vlan
+- interface vlan [non existing vlan]
+- interface [non existing interface]
+
+Correcto:
+
+- interface [existing interface]
+- interface vlan [existing vlan id]
+
+
+COMANDO SHOW VLAN:
+
+Ahora, cuando hacemos un show vlan se muestra si la vlan esta activa en
+alguna interfaz y, en el caso de que le hayamos asignado una IP como Vlan administrativa
+pues tambien mostrara dicha direccion
+
+VLAN Name			VLAN ID 		Interface		ADDRESS
+kapil					10 					eth0,eth1		192.168.0.1
+
+COMANDO SHOW RUNNING-CONFIG:
+
+Se ha habilitado la posibilidad de poder conocer cual es la running-config actual haciendo
+uso del commando "show running-config"
+
+COMANDO NO:
+
+Se tratan todas las excepciones:
+
+- no 
+- no vlan
+- no vlan [otra cosa]
+
+Correcto:
+- no shutdown
+- no vlan 10
+
+- interface eth0
+- no switchport mode access
+
+
+COMANDO SWITCHPORT:
+
+Se tratan excepciones:
+
+- switchport
+- switchport mode
+- switchport mode aqwcwe
+- switchport access
+- switchport access vlan [no existe vlan o no existe palabra]
+- primero va switchport mode access y luego switchport access vlan [id]
+- primero va switchport mode trunk y luego switchport trunk allowed vlan 10,20
+
