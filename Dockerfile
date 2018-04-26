@@ -14,3 +14,4 @@ ADD common.py /
 RUN mkdir -p /files
 VOLUME /files
 ADD shell.py /
+CMD ["python","./shell.py"]

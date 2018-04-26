@@ -758,6 +758,7 @@ class ActualCommand(Command.Command):
 						print("\t\texit")
 
 def main():
+	subprocess.call(["/etc/init.d/openvswitch-switch","start"])
 	if(vswitch.ovs_vsctl_is_ovs_bridge("br0") == False):
 		vswitch.ovs_vsctl_add_bridge("br0")
 		print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Bridge Created with name br0")
