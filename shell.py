@@ -122,7 +122,6 @@ class Colors:
     UNDERLINE = '\033[4m'
 
 #common.remove_eth0_and_eth1()
-
 # Falta comprobar con expresiones regulares la mascara y la ip
 class IPAdminInterface(Command.Command):
 	def args(self):
@@ -247,7 +246,7 @@ class ConfigureInterface(Command.Command):
 					else:
 						if(interface_range[1] == common.get_item_interfaces(i)):
 							common.set_final(i)
-				if(common.get_init() == -1 or common.get_final == -1):
+				if(common.get_init() == -1 or common.get_final() == -1):
 					print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "This range doesnt exist")
 					return
 				common.get_console().prompt = "(config-if)"
@@ -566,9 +565,10 @@ class Show(Command.Command):
 					print(str_aux)
 			else:
 				if (str(argument).strip('[]').strip('\'"') == "interfaces"):
-					print ("INTERFACES:")
+					print ("INTERFACES\t\tSTATUS")
 					for i in range(0,common.get_len_interfaces()):
-						print (common.get_item_interfaces(i))
+						str_aux = (common.get_item_interfaces(i) + "\t\t\t" + common.get_item_up_down_interface(i))
+						print str_aux
 				else:
 					if (str(argument).strip('[]').strip('\'"') == "running-config"):
 						# fichero_para_leer = open('/home/LisaSwitch.txt','r')
@@ -590,10 +590,7 @@ class Show(Command.Command):
 
 
 class Exit(Command.Command):
-	def args(self):
-		return ["exit"]
-	def run(self,line):
-		common.append_array_history(line)
+    def run(self,line):
 		if (common.get_console().prompt == common.get_user_name()):
 			sys.exit(1)
 		else:
@@ -601,17 +598,22 @@ class Exit(Command.Command):
 				common.get_console().prompt = "(config)"
 				if(common.get_multi() == True):
 					common.append_array_multi(line)
+					print common.get_array_multi()
 					run.run_multi()
+				else:
+					common.append_array_history(line)
 				if (cargando.get_cargando() == False):
 					common.get_console().loop()
 			else:
 				if common.get_console().prompt == "(config-vlan)":
 					common.get_console().prompt = "(config)"
+					common.append_array_history(line)
 					if (cargando.get_cargando() == False):
 						common.get_console().loop()
 				else:
 					if common.get_console().prompt == "(config)":
 						common.get_console().prompt = common.get_user_name()
+						common.append_array_history(line)
 						if (cargando.get_cargando() == False):
 							common.get_console().loop()
 
@@ -633,20 +635,23 @@ class Save_Load(Command.Command):
 		if(common.get_console().prompt == common.get_user_name()):
 			if(args[1:][0] == "running-config" and args[1:][1] == "startup-config"):
 				print ("Creando fichero")
-				fichero = open('/home/LisaSwitch.txt','w+')
+				fichero = open('/home/config.txt','w+')
 				for i in range(0,common.get_len_array_history()):
 					fichero.write(common.get_item_array_history(i) + '\n')
 				fichero.close()
 			else:
-				if(args[1:][0] == "startup-config" and args[1:][1] == "running-config" and os.path.exists("/home/LisaSwitch.txt") == True):
-					cargando.set_cargando()
-					fichero_leer = open('/home/LisaSwitch.txt','r')
-					linea = fichero_leer.readline()
-					while(linea != ""):
-						common.get_console().walk(linea,0,run=True,full_line=linea)
+				if(args[1:][0] == "startup-config" and args[1:][1] == "running-config"):
+					if(os.path.exists("/home/config.txt") == True):
+						cargando.set_cargando()
+						fichero_leer = open('/home/config.txt','r')
 						linea = fichero_leer.readline()
-					fichero_leer.close()
-					cargando.set_cargando()
+						while(linea != ""):
+							common.get_console().walk(linea,0,run=True,full_line=linea)
+							linea = fichero_leer.readline()
+						fichero_leer.close()
+						cargando.set_cargando()
+					else:
+						print (Colors.FAIL + "[ERROR] " + Colors.ENDC + "There is no configuration saved")
 				else:
 					print (Colors.FAIL + "[ERROR] " + Colors.ENDC + "Bad Command Use")
 		else:
@@ -668,6 +673,7 @@ class No(Command.Command):
 
 	def run(self,line):
 		args = line.split()
+		check = False
 		if(len(args) > 1):
 			argument = args[0:][1]
 			if(argument == "vlan"):
@@ -678,12 +684,16 @@ class No(Command.Command):
 							if(common.get_len_vlan_id() > 0):
 								for i in range(0,common.get_len_vlan_id()):
 									if(vlan_id_to_delete == common.get_item_vlan_id(i)):
-										print(common.get_item_vlan_id(i))
+										check = True
+										for j in range(0,len(common.get_item_by_mini_vector(i))):
+											vswitch.ovs_vsctl_del_port_from_bridge(common.get_item_by_mini_vector(i)[j])
+											vswitch.ovs_vsctl_add_port_to_bridge("br0",common.get_item_by_mini_vector(i)[j])
 										common.remove_item_vlan_id(common.get_item_vlan_id(i))
 										common.remove_item_vlan_name(common.get_item_vlan_name(i))
-										#vswitch.ovs_vsctl_del_port_from_bridge(common.get_item_array_interfaces_vlan(i))
-									else:
-										print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "VLAN doesnt exist")
+										common.append_array_history(line)
+										break
+								if(check == False):
+									print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "VLAN doesnt exist")
 							else:
 								print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "No VLAN's created")
 						else:
@@ -701,6 +711,10 @@ class No(Command.Command):
 						else:
 							try:
 								subprocess.call(['ifconfig','%s' % connecting_interfaces.get_connect(),'up'])
+								common.append_array_history(line)
+								for i in range(0,common.get_len_interfaces()):
+									if(connecting_interfaces.get_connect() == common.get_item_array_interfaces(i)):
+										common.set_up_down_interface(i)
 							except KeyboardInterrupt:
 								print (Colors.FAIL + "[ERROR] " + Colors.ENDC + "Bad command use")
 								return
@@ -730,6 +744,7 @@ class Shutdown(Command.Command):
 		if(common.get_console().prompt == "(config-if)"):
 			try:
 				subprocess.call(['ifconfig','%s' % connecting_interfaces.get_connect(),'down'])
+				common.append_array_history(line)
 			except KeyboardInterrupt:
 				print (Colors.FAIL + "[ERROR] " + Colors.ENDC)
 				return
@@ -778,15 +793,6 @@ class ActualCommand(Command.Command):
 						print("\t\texit")
 
 def main():
-	subprocess.call(["/etc/init.d/openvswitch-switch","start"])
-	if(vswitch.ovs_vsctl_is_ovs_bridge("br0") == False):
-		vswitch.ovs_vsctl_add_bridge("br0")
-		print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Bridge Created with name br0")
-	contador = 0
-	for i in range(0,common.get_len_interfaces()):
-		vswitch.ovs_vsctl_add_port_to_bridge("br0",common.get_item_interfaces(i))
-		contador = contador + 1
-	print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Adding interface " + str(contador) + " to bridge br0")
 	hostname = Hostname("hostname",help="Usage: hostname [name]",dynamic_args=True)
 	configureswitch = ConfigureSwitch("configure",help="Usage: configure to access to the switch configuration")
 	vlan = Vlan("vlan",help="Usage: vlan [vlan id]",dynamic_args=True)
@@ -821,6 +827,18 @@ def main():
 	common.get_console().addChild(actualcommand)
 	common.get_console().addChild(shutdown)
 	common.get_console().addChild(reload_)
+	#subprocess.call(["/etc/init.d/openvswitch-switch","start"])
+	if(vswitch.ovs_vsctl_is_ovs_bridge("br0") == False):
+		vswitch.ovs_vsctl_add_bridge("br0")
+		print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Bridge Created with name br0")
+		contador = 0
+		load_or_not = raw_input("Do you have any configuration saved? (y/n): ")
+		if(load_or_not == "y"):
+			common.get_console().walk("copy startup-config running-config",0,run=True,full_line="copy startup-config running-config")
+		for i in range(0,common.get_len_interfaces()):
+			vswitch.ovs_vsctl_add_port_to_bridge("br0",common.get_item_interfaces(i))
+			contador = contador + 1
+			print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Adding interface " + str(contador) + " to bridge br0")
 	common.get_console().loop()
 	print (Colors.OKBLUE + "Bye" + Colors.ENDC)
 if __name__ == '__main__':
