@@ -23,15 +23,18 @@ def ovs_vsctl_add_trunk_port(port,trunk):
 
 def ifconfig(ip,port):
     ret,_out,err = util.start_process(["ip","addr","add",ip,"dev",port])
-    return ret
+    return err
 
+def iplink(port,status):
+    ret,_out,err = util.start_process(["ip","link","set",port,status])
+    return err
 def ovs_vsctl_admin_port(bridge,port,tag):
     final_tag = "%s=%s" % ("tag",tag)
     ret,_out,err = util.start_process(["ovs-vsctl","add-port",bridge,port,final_tag])
     return ret
 
 def ovs_vsctl_set_admin(port,type):
-    final_type = "%s=%s" % ("type",type)
+    final_type = "type=" + type
     ret,_out,err = util.start_process(["ovs-vsctl","set","Interface",port,final_type])
 
 def ovs_vsctl_add_bridge(bridge):

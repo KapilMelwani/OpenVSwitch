@@ -21,7 +21,7 @@ class Common:
 		# Array que contiene el nombre de las vlan creadas en el sistema
 		self.array_vlan_name = []
 		# Array que contiene el listado de interfaces excepto la loopback
-		self.array_interfaces_all = ["eth0","eth1","eth2","eth3","eth4"]
+		self.array_interfaces_all = netifaces.interfaces()
        		self.array_interfaces = []
         	self.array_interfaces_vlan = []
        		self.array_ip_vlan = []

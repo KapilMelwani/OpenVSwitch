@@ -135,73 +135,78 @@ class IPAdminInterface(Command.Command):
 		return True
 	def run(self,line):
 		args = line.split()
-		if(len(args) < 2):
-			print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Usage: ip address [ip/mask]")
-			return
-		if(args[1:][0] == "address"):
-			patron_ip = re.compile('^(\d{1,3}.){3}\d{1,3}$')
-			patron_short_mask = re.compile('^\d{1,2}$')
-			if(len(args[2:]) == 0):
-				print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Not IP/MASK specified")
+		if(common.get_console().prompt == "(config-if)"):
+			if(len(args) < 2):
+				print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Usage: ip address [ip/mask]")
 				return
-			ip_address = args[2:][0]
-			str_ip_address = str(ip_address).strip('[]').strip('\'"')
-			address_mask = str_ip_address.replace("/"," ")
-			address_mask = address_mask.split()
-			test_ip = self.testing_ip(address_mask[0])
-			if(test_ip == False):
-				print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Wrong IP Address")
-				return
-			if(patron_ip.match(address_mask[0])):
-				if(len(address_mask) == 1):
-					if(len(args[2:]) != 2):
-						print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "You must specified netmask")
-						return
-					else:
-						if(len(args[2:]) == 2):
-							mask = args[3]
-							str_mask = str(mask).strip('[]').strip('\'"')
-							if(str_mask.find('.') > 0):
-								short_mask = 0
-								for i in range(common.get_len_array_long_mask()):
-									if(str_mask == common.get_item_array_long_mask(i)):
-										for j in range(0,common.get_len_array_long_mask()):
-											if(str_mask == common.get_item_array_long_mask(i)):
-												short_mask = str(i)
-										print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "ip address: " + str_ip_address + " mask: " + str_mask + " added")
-										vlan_str = "vlan" + connecting_vlan.get_connect_vlan_interface()
-										vswitch.ovs_vsctl_admin_port("br0",vlan_str,connecting_vlan.get_connect_vlan_interface())
-										vswitch.ovs_vsctl_set_admin("br0",vlan_str)
-										vswitch.ifconfig(str_ip_address + '/' + short_mask,vlan_str)
-										for k in range(0,common.get_len_vlan_id()):
-											if(common.get_item_vlan_id(k) == connecting_vlan.get_connect_vlan_id_interface_vlan()):
-												common.set_array_ip_vlan(k,str_ip_address + "/" + short_mask)
-										common.append_array_history(line)
-										return
-								print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Wrong long mask")
-							else:
-								print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Wrong long mask")
-				else:
-					if(patron_short_mask.match(address_mask[1])):
-						mask = address_mask[1]
-						if(int(mask) > common.get_len_array_long_mask() or int(mask) < 0):
-							print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Wrong short mask")
+			if(args[1:][0] == "address"):
+				patron_ip = re.compile('^(\d{1,3}.){3}\d{1,3}$')
+				patron_short_mask = re.compile('^\d{1,2}$')
+				if(len(args[2:]) == 0):
+					print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Not IP/MASK specified")
+					return
+				ip_address = args[2:][0]
+				str_ip_address = str(ip_address).strip('[]').strip('\'"')
+				address_mask = str_ip_address.replace("/"," ")
+				address_mask = address_mask.split()
+				test_ip = self.testing_ip(address_mask[0])
+				if(test_ip == False):
+					print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Wrong IP Address")
+					return
+				if(patron_ip.match(address_mask[0])):
+					if(len(address_mask) == 1):
+						if(len(args[2:]) != 2):
+							print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "You must specified netmask")
 							return
-						long_mask = common.get_array_long_mask(int(mask))
-						vlan_str = "vlan" + connecting_vlan.get_connect_vlan_interface()
-						vswitch.ovs_vsctl_admin_port("br0",vlan_str,connecting_vlan.get_connect_vlan_interface())
-						vswitch.ovs_vsctl_set_admin("br0",vlan_str)
-						vswitch.ifconfig(str_ip_address,vlan_str)
-						print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "ip address: " + str_ip_address + " mask: " + long_mask + " added")
-						for k in range(0,common.get_len_vlan_id()):
-							if(common.get_item_vlan_id(k) == connecting_vlan.get_connect_vlan_id_interface_vlan()):
-								common.set_array_ip_vlan(k,address_mask[0] + "/" + address_mask[1])
+						else:
+							if(len(args[2:]) == 2):
+								mask = args[3]
+								str_mask = str(mask).strip('[]').strip('\'"')
+								if(str_mask.find('.') > 0):
+									short_mask = 0
+									for i in range(common.get_len_array_long_mask()):
+										if(str_mask == common.get_item_array_long_mask(i)):
+											for j in range(0,common.get_len_array_long_mask()):
+												if(str_mask == common.get_item_array_long_mask(i)):
+													short_mask = str(i)
+											print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "ip address: " + str_ip_address + " mask: " + str_mask + " added")
+											vlan_str = "vlan" + connecting_vlan.get_connect_vlan_interface()
+											vswitch.ovs_vsctl_admin_port("br0",vlan_str,connecting_vlan.get_connect_vlan_interface())
+											vswitch.ovs_vsctl_set_admin(vlan_str,"internal")
+											print vswitch.ifconfig(str_ip_address + '/' + short_mask,vlan_str)
+											print vswitch.iplink(vlan_str,"up")
+											for k in range(0,common.get_len_vlan_id()):
+												if(common.get_item_vlan_id(k) == connecting_vlan.get_connect_vlan_id_interface_vlan()):
+													common.set_array_ip_vlan(k,str_ip_address + "/" + short_mask)
+											common.append_array_history(line)
+											return
+									print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Wrong long mask")
+								else:
+									print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Wrong long mask")
+					else:
+						if(patron_short_mask.match(address_mask[1])):
+							mask = address_mask[1]
+							if(int(mask) > common.get_len_array_long_mask() or int(mask) < 0):
+								print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Wrong short mask")
+								return
+							long_mask = common.get_array_long_mask(int(mask))
+							vlan_str = "vlan" + connecting_vlan.get_connect_vlan_interface()
+							vswitch.ovs_vsctl_admin_port("br0",vlan_str,connecting_vlan.get_connect_vlan_interface())
+							vswitch.ovs_vsctl_set_admin(vlan_str,"internal")
+							print vswitch.ifconfig(str_ip_address,vlan_str)
+							print vswitch.iplink(vlan_str,"up")
+							print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "ip address: " + str_ip_address + " mask: " + long_mask + " added")
+							for k in range(0,common.get_len_vlan_id()):
+								if(common.get_item_vlan_id(k) == connecting_vlan.get_connect_vlan_id_interface_vlan()):
+									common.set_array_ip_vlan(k,address_mask[0] + "/" + address_mask[1])
 
-						common.append_array_history(line)
+							common.append_array_history(line)
+				else:
+					print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Not a valid IP Address")
 			else:
-				print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Not a valid IP Address")
+				print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Usage: ip address [ip/mask]")
 		else:
-			print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Usage: ip address [ip/mask]")
+			print(Colors.FAIL + "[ERROR] " + Colors.ENDC + "Bad Command Use")
 
 # Clase ConfigureInterface la cual nos sirve para acceder a la configuracion
 # de una de las interfaces que tenga el switch. Previamente, comprobamos la existencia
@@ -827,7 +832,7 @@ def main():
 	common.get_console().addChild(actualcommand)
 	common.get_console().addChild(shutdown)
 	common.get_console().addChild(reload_)
-	#subprocess.call(["/etc/init.d/openvswitch-switch","start"])
+	subprocess.call(["/etc/init.d/openvswitch-switch","start"])
 	if(vswitch.ovs_vsctl_is_ovs_bridge("br0") == False):
 		vswitch.ovs_vsctl_add_bridge("br0")
 		print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Bridge Created with name br0")
@@ -837,8 +842,9 @@ def main():
 			common.get_console().walk("copy startup-config running-config",0,run=True,full_line="copy startup-config running-config")
 		for i in range(0,common.get_len_interfaces()):
 			vswitch.ovs_vsctl_add_port_to_bridge("br0",common.get_item_interfaces(i))
+			vswitch.iplink(common.get_item_interfaces(i),"down")
 			contador = contador + 1
-			print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Adding interface " + str(contador) + " to bridge br0")
+			print (Colors.OKGREEN + "[OK] " + Colors.ENDC + "Adding " + str(contador) + " interface to bridge br0")
 	common.get_console().loop()
 	print (Colors.OKBLUE + "Bye" + Colors.ENDC)
 if __name__ == '__main__':
