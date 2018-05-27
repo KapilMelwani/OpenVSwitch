@@ -11,7 +11,5 @@ ADD util.py /
 ADD utils.py /
 ADD vswitch.py /
 ADD common.py /
-RUN mkdir -p /files
-VOLUME /files
 ADD shell.py /
 CMD ["python","./shell.py"]
